@@ -195,15 +195,165 @@ class MyFormState extends State {
 
 enum GenderList {male, female}
 
+class MainScreen extends StatelessWidget {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(title: Text('main screen')),
+      body: Center(child: Column(children: <Widget>[
+        RaisedButton(onPressed: () {
+          //Navigator.push(context, MaterialPageRoute(builder: (context) => SecondScreen()));
+          Navigator.pushNamed(context, '/second');
+        }, child: Text('Открыть второе окно')),
+        RaisedButton(onPressed: () {
+          //Navigator.push(context, MaterialPageRoute(builder: (context) => SecondScreen()));
+          Navigator.pushNamed(context, '/second/123');
+        }, child: Text('Открыть второе окно 123')),
+        RaisedButton(onPressed: () async {
+          bool value = await Navigator.push(context, PageRouteBuilder(
+            opaque: false,
+            pageBuilder: (BuildContext context, _,__) => MyPopUp(),
+            transitionsBuilder: (___, Animation<double> animation, ____, Widget child) {
+              return FadeTransition(
+                opacity: animation,
+                  child: ScaleTransition(scale: animation, child: child)
+              );
+            }
+          ));
+
+          if (value) _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Больше'), backgroundColor: Colors.green,));// TRUE
+          else _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Меньше'), backgroundColor: Colors.red,));// FALSE
+
+        }, child: Text('open dialog'))
+      ]))
+    );
+  }
+}
+
+class MyPopUp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+
+    return AlertDialog(
+      title: Text("text"),
+      actions: <Widget>[
+        FlatButton(
+          onPressed: () { Navigator.pop(context, true);},
+          child: Text('1')
+        ),
+        FlatButton(
+          onPressed: () { Navigator.pop(context, false);},
+          child: Text('2')
+        )
+      ]
+    );
+  }
+}
+
+class SecondScreen extends StatelessWidget {
+  String _id;
+  SecondScreen({String id}):_id = id;
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      appBar: AppBar(title: Text('second screen $_id')),
+      body: Center(child: RaisedButton(onPressed: () {
+        Navigator.pop(context);
+      }, child: Text('Back')))
+    );
+  }
+}
+
+class SandClass {
+  int _sand = 0;
+
+  Future tick() async {
+    _sand = 100;
+    print("start:tick");
+    while(_sand > 0) {
+      print('tick: $_sand');
+      _sand--;
+      await new Future.delayed(const Duration(milliseconds: 100));
+    }
+    print('end:tick');
+  }
+
+  time() {
+    return _sand;
+  }
+}
+
+class MyAppState extends State {
+  SandClass clock = SandClass();
+
+  _reDrawWidget() async {
+    if (clock.time() == 0) return;
+    await new Future.delayed(const Duration(seconds: 1));
+    setState(() {
+      print('reDrawWidget()');
+    });
+  }
+
+  @override
+  void initState() {
+    clock.tick();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _reDrawWidget();
+
+    print('clock.tick: ${clock.time()}');
+
+    return Center(child: Text('time is: ${clock.time()}'));
+  }
+}
+
+class MyApp extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => MyAppState();
+}
+
+
+
 void main() =>  runApp(
 
   new MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: new Scaffold(
-        appBar: new AppBar(title: new Text("форма ввода")),
-        body: new MyForm()
-      )
+    home: Scaffold(body: MyApp())
   )
+
+//  new MaterialApp(
+//    routes: {
+//      '/':(BuildContext context) => MainScreen(),
+//      '/second':(BuildContext context) => SecondScreen()
+//    },
+//
+//      onGenerateRoute: (routeSettings){
+//        var path = routeSettings.name.split('/');
+//
+//        if (path[1] == "second") {
+//          return new MaterialPageRoute(
+//            builder: (context) => new SecondScreen(id:path[2]),
+//            settings: routeSettings,
+//          );
+//        }
+//      }
+//    //home: MainScreen()
+//  )
+
+//  new MaterialApp(
+//      debugShowCheckedModeBanner: false,
+//      home: new Scaffold(
+//        appBar: new AppBar(title: new Text("форма ввода")),
+//        body: new MyForm()
+//      )
+//  )
 
 //  new MaterialApp(
 //    debugShowCheckedModeBanner: false,
